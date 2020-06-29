@@ -1,0 +1,149 @@
+<?php
+
+/*
+ * Implements hook_install
+ */
+function decision_tree_install() {
+
+  node_types_rebuild();
+  $types = node_type_get_types();
+
+  $t = get_t();
+
+
+  node_add_body_field($types['decision_tree'], $t('Description'));
+  _decision_tree_add_custom_fields();
+
+  $allowed_types = variable_get('book_allowed_types', array());
+  $allowed_types[] = 'decision_tree';
+  variable_set('book_allowed_types', $allowed_types);
+
+  $child = variable_get('book_child_type', 'book');
+  variable_set('book_old_child_type', $child);
+  variable_set('book_child_type', 'decision_tree');
+
+  variable_set('node_options_decision_tree', array('status'));       // Set 'Default options' to 'Published'.
+  variable_set('node_submitted_decision_tree', 0);                   // Unset 'Display author and date information'.
+  variable_set('comment_decision_tree', COMMENT_NODE_CLOSED);        // Set 'Default comment setting for new content' to 'Closed'.
+  variable_set('menu_options_decision_tree', array());   // Set 'Available menus' to 'Navigation'.
+  variable_set('menu_parent_decision_tree', '');
+
+
+  $instance_info = field_info_instance('node', 'body', 'decision_tree');
+  $instance_info['display']['decision_tree']['type'] = 'default';
+  $instance_info['display']['decision_tree']['label'] = 'hidden';
+
+  field_update_instance($instance_info);
+
+  db_update('system')
+    ->fields(array('weight' => 100))
+    ->condition('name', 'decision_tree', '=')
+    ->execute();
+}
+
+
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function decision_tree_uninstall() {
+
+  node_type_cache_reset();
+  node_types_rebuild();
+  $ournewtype = 'decision_tree';
+  $nids = db_select('node') -> condition('type', $ournewtype) -> fields('node', array('nid')) -> execute() -> fetchCol();
+
+  node_delete_multiple($nids);
+  _decision_tree_delete_custom_fields();
+  node_type_delete($ournewtype);
+
+  $allowed_types = variable_get('book_allowed_types', array());
+  $ex_key = array_search('decision_tree', $allowed_types);
+  if($ex_key){
+    unset($allowed_types[$ex_key]);
+  }
+  variable_set('book_allowed_types', $allowed_types);
+
+  $child = variable_get('book_old_child_type', 'book');
+  variable_set('book_child_type', $child);
+  variable_del('book_old_child_type');
+
+}
+
+
+
+function _decision_tree_installed_fields() {
+    $t = get_t();
+    return array(
+        'field_dtree_breadcrumb' => array(
+            'field_name' => 'field_dtree_breadcrumb',
+            'label' => $t('Breadcrumb title'),
+            'type' => 'text',
+            'settings' => array(
+              'max_length' => 45,
+              ),
+        ),
+        'field_dtree_button_title' => array(
+            'field_name' => 'field_dtree_button_title',
+            'label' => $t('Button title'),
+            'type' => 'text_long'
+        )
+    );
+}
+
+function _decision_tree_installed_instances() {
+    $t = get_t();
+
+  return array(
+    'breadcrumb_title' => array(
+      'field_name' => 'field_dtree_breadcrumb',
+      'entity_type' => 'node',
+      'bundle' => 'decision_tree',
+      'label' => 'Breadcrumb title',
+      'description' => $t('Max length is 45 characters'),
+      'required' => TRUE,
+    ),
+
+
+    'button_title' => array(
+      'field_name' => 'field_dtree_button_title',
+      'entity_type' => 'node',
+      'bundle' => 'decision_tree',
+      'label' => 'Button title',
+    ),
+
+
+  );
+}
+
+
+function _decision_tree_add_custom_fields() {
+
+  $new_fields = _decision_tree_installed_fields();
+
+
+  foreach ($new_fields as $field) {
+    field_create_field($field);
+  }
+
+  $new_instances = _decision_tree_installed_instances();
+  foreach ($new_instances as $fieldinstance) {
+    field_create_instance($fieldinstance);
+  }
+}
+
+
+function _decision_tree_delete_custom_fields(){
+
+  $instances = field_info_instances('node', 'decision_tree');
+
+  foreach ($instances as $instance_name => $fieldinstance) {
+    field_delete_instance($fieldinstance);
+  }
+
+  $fkeys = array_keys(_decision_tree_installed_fields());
+  foreach ($fkeys as $field) {
+    field_delete_field($field);
+  }
+}

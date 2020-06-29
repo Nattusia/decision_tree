@@ -1,0 +1,19 @@
+.book-buttons.container-fluid{
+    padding: 0;
+}
+
+.book-buttons{
+    margin-top: 15px;
+}
+
+.backbutton-wrap{
+    position: absolute;
+    left: -30px;
+    top: 0;
+    height: 100%;
+    width: 26px;
+    font-size: 26px;
+    text-align: middle;
+
+}
+

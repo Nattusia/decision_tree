@@ -1,0 +1,18 @@
+.book-buttons a{
+  padding-top: 10px;
+  padding-bottom: 10px;
+
+}
+
+.book_buttons{
+  background: black;
+}
+
+.backbutton-wrap{
+    position: absolute;
+    left: -20px;
+    top: 0;
+    height: 100%;
+    width: 20px;
+
+}

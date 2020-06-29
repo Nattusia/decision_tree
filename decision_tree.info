@@ -1,0 +1,7 @@
+name = "Decision tree"
+description = "Leads user consinstantly through the book tree, depending on user's choise on every step"
+core = 7.x
+package = Custom
+dependencies[] = book
+
+
